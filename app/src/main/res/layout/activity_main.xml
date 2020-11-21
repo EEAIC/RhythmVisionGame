@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:id="@+id/previewView" />
 
-    <com.lifository.posedetection.GraphicOverlay
+    <com.lifository.RhythmVisionGame.GraphicOverlay
         android:id="@+id/graphic_overlay"
         android:layout_width="0dp"
         android:layout_height="0dp"

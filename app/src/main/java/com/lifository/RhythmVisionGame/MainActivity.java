@@ -1,7 +1,6 @@
-package com.lifository.posedetection;
+package com.lifository.RhythmVisionGame;
 
 import android.content.pm.PackageManager;
-import android.graphics.PointF;
 import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -31,8 +30,6 @@ import com.google.mlkit.vision.pose.PoseDetector;
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;

@@ -1,10 +1,7 @@
-package com.lifository.posedetection;
+package com.lifository.RhythmVisionGame;
 
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.util.Pair;
 import android.util.Size;
 
 public class Note {

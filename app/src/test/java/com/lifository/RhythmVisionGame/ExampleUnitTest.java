@@ -1,4 +1,4 @@
-package com.lifository.posedetection;
+package com.lifository.RhythmVisionGame;
 
 import org.junit.Test;
 

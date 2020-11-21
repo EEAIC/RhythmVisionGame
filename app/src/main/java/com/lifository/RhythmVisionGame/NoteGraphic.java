@@ -1,20 +1,11 @@
-package com.lifository.posedetection;
+package com.lifository.RhythmVisionGame;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PointF;
 import android.graphics.RectF;
-import android.util.Log;
 
-import androidx.annotation.Nullable;
-
-import com.google.mlkit.vision.pose.PoseLandmark;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 public class NoteGraphic extends GraphicOverlay.Graphic {
     private final GraphicOverlay overlay;
