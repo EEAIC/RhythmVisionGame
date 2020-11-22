@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     PoseDetectorOptions options = new PoseDetectorOptions.Builder().setDetectorMode(PoseDetectorOptions.STREAM_MODE).build();
     PoseDetector poseDetector = PoseDetection.getClient(options);
     NoteProcessor noteProcessor;
+    MediaPlayer mPlayer;
+    SwitchCompat switch1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,22 +58,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // 화면이 꺼지는 것을 방지
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE
-                        // Set the content to appear under the system bars so that the
-                        // content doesn't resize when the system bars hide and show.
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        // Hide the nav bar and status bar
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+//        View decorView = getWindow().getDecorView();
+//        decorView.setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_IMMERSIVE
+//                        // Set the content to appear under the system bars so that the
+//                        // content doesn't resize when the system bars hide and show.
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+//                        // Hide the nav bar and status bar
+//                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+//                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
-        final MediaPlayer mPlayer = MediaPlayer.create(this, R.raw.mitis_moments);
+        mPlayer = MediaPlayer.create(this, R.raw.mitis_moments);
         mPlayer.setLooping(true);
 
-        final SwitchCompat switch1 = findViewById(R.id.switchMusicStart);
+        switch1 = findViewById(R.id.switchMusicStart);
         switch1.setOnClickListener(view -> {
             if (switch1.isChecked()) {
                 mPlayer.start();
@@ -96,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         mPreviewView = findViewById(R.id.previewView);
+        mPreviewView.setVisibility(View.INVISIBLE);
+
         graphicOverlay = findViewById(R.id.graphic_overlay);
         if (graphicOverlay == null) {
             Log.d("CameraX", "graphicOverlay is null");
@@ -105,9 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (allPermissionsGranted()) {
             startCamera();
-
-
-            TimerTask t = new TimerTask()
+            TimerTask noteMove = new TimerTask()
             {
                 public void run()
                 {
@@ -115,12 +117,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-            Timer mLongPressTimer = new Timer();
-            mLongPressTimer.schedule(t, 0, 50);
-
-            TimerTask t2 = new TimerTask()
+            TimerTask makeNote = new TimerTask()
             {
-
                 public void run()
                 {
                     if (noteProcessor.getDisplayNotes().size() < 100)
@@ -128,10 +126,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-            Timer randomNoteTimer = new Timer();
-            mLongPressTimer.schedule(t2, 0, 500);
-
-
+            Timer noteTimer = new Timer();
+            noteTimer.schedule(noteMove, 0, 25);
+            noteTimer.schedule(makeNote, 0, 1000);
 
         } else {
             int REQUEST_CODE_PERMISSIONS = 1001;
@@ -191,4 +188,17 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mPlayer.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (switch1.isChecked()) {
+            mPlayer.start();
+        }
+    }
 }

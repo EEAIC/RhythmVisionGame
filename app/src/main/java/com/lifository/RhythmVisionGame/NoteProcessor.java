@@ -13,7 +13,7 @@ public class NoteProcessor {
     private final List<Note> displayNotes;
     private final GraphicOverlay overlay;
     NoteProcessor(GraphicOverlay overlay) {
-        this.displayNotes = new ArrayList<Note>();
+        this.displayNotes = new ArrayList<>();
         this.overlay = overlay;
     }
 
@@ -48,7 +48,7 @@ public class NoteProcessor {
 
     void makeRandomNote() {
         synchronized (displayNotes) {
-            Note tmpNote = new Note(new PointF(-20, (float) Math.random() * (124) + 10), Note.Direction.RIGHT);
+            Note tmpNote = new Note(new PointF(overlay.getTranslationX(), (float) Math.random() * (124)), Note.Direction.RIGHT);
             Note tmpNote2 = new Note(new PointF((176 + 20), (float) Math.random() * (124)), Note.Direction.LEFT);
 
             this.displayNotes.add(tmpNote);
@@ -60,10 +60,6 @@ public class NoteProcessor {
 //        Log.e("WRISTX", Float.toString(176 - pose.getPosition().x));
 //        Log.e("WRISTY", Float.toString(176 - pose.getPosition().y));
 
-        if (note.getPosition().x <= pose.getPosition().x && pose.getPosition().x <= note.getPosition().x + note.getSize().getWidth() && note.getPosition().y <= pose.getPosition().y && pose.getPosition().y <= note.getPosition().y + note.getSize().getHeight()){
-            return true;
-        } else {
-            return  false;
-        }
+        return note.getPosition().x <= pose.getPosition().x && pose.getPosition().x <= note.getPosition().x + note.getSize().getWidth() && note.getPosition().y <= pose.getPosition().y && pose.getPosition().y <= note.getPosition().y + note.getSize().getHeight();
     }
 }

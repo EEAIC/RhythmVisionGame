@@ -19,10 +19,10 @@ public class NoteGraphic extends GraphicOverlay.Graphic {
         this.Notes = Notes;
         leftPaint = new Paint();
         leftPaint.setColor(Color.CYAN);
-        leftPaint.setShadowLayer(20, 0, 0, Color.DKGRAY);
+        leftPaint.setShadowLayer(20, 0, 0, Color.LTGRAY);
         rightPaint = new Paint();
         rightPaint.setColor(Color.RED);
-        rightPaint.setShadowLayer(20, 0, 0, Color.DKGRAY);
+        rightPaint.setShadowLayer(20, 0, 0, Color.LTGRAY);
     }
 
     @Override
@@ -32,8 +32,8 @@ public class NoteGraphic extends GraphicOverlay.Graphic {
                 return;
             }
 
-            Notes.removeIf(note -> note.getDirection() == Note.Direction.RIGHT && note.getBoundingBox().right >= overlay.getImageWidth() / 2);
-            Notes.removeIf(note -> note.getDirection() == Note.Direction.LEFT && note.getBoundingBox().left <= overlay.getImageWidth() / 2);
+            Notes.removeIf(note -> note.getDirection() == Note.Direction.RIGHT && note.getBoundingBox().right >= overlay.getImageWidth() / 2.);
+            Notes.removeIf(note -> note.getDirection() == Note.Direction.LEFT && note.getBoundingBox().left <= overlay.getImageWidth() / 2.);
 
             // Draw all the notes
             for (Note note : Notes) {

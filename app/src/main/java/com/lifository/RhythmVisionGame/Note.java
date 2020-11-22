@@ -9,12 +9,12 @@ public class Note {
     private final int DEFAULT_HEIGHT = 20;
 
     enum Direction {
-        RIGHT, LEFT;
+        RIGHT, LEFT
     }
 
     private Size size;
     private PointF pos;
-    private Direction direction;
+    private final Direction direction;
 
     Note(PointF pos) {
         this.pos = pos;
@@ -53,10 +53,6 @@ public class Note {
         rect.top = pos.y;
         rect.bottom = pos.y + size.getHeight();
         return rect;
-    }
-
-    void setPos(PointF pos) {
-        this.pos.set(pos);
     }
 
     void move() {
