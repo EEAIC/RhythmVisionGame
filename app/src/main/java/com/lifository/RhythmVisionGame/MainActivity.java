@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 //                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 //                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
-        mPlayer = MediaPlayer.create(this, R.raw.mitis_moments);
+        mPlayer = MediaPlayer.create(this, R.raw.pirates);
         mPlayer.setLooping(true);
 
         switch1 = findViewById(R.id.switchMusicStart);
@@ -159,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 InputImage inputImage = InputImage.fromMediaImage(myImage, image.getImageInfo().getRotationDegrees());
 
                 graphicOverlay.setImageSourceInfo(image.getWidth(), image.getHeight(), true);
+                noteProcessor.setOverlay(graphicOverlay);
                 poseDetector.process(inputImage).addOnSuccessListener(executor, results -> {
                     noteProcessor.setPose(results);
                     noteProcessor.destroyNote();

@@ -1,6 +1,7 @@
 package com.lifository.RhythmVisionGame;
 
 import android.graphics.PointF;
+import android.util.Log;
 
 import com.google.mlkit.vision.pose.Pose;
 import com.google.mlkit.vision.pose.PoseLandmark;
@@ -11,7 +12,7 @@ import java.util.List;
 public class NoteProcessor {
     private Pose pose = null;
     private final List<Note> displayNotes;
-    private final GraphicOverlay overlay;
+    private GraphicOverlay overlay;
     NoteProcessor(GraphicOverlay overlay) {
         this.displayNotes = new ArrayList<>();
         this.overlay = overlay;
@@ -19,6 +20,10 @@ public class NoteProcessor {
 
     void setPose(Pose pose) {
         this.pose = pose;
+    }
+
+    void setOverlay(GraphicOverlay overlay) {
+        this.overlay = overlay;
     }
 
     List<Note> getDisplayNotes() {
@@ -48,18 +53,14 @@ public class NoteProcessor {
 
     void makeRandomNote() {
         synchronized (displayNotes) {
-            Note tmpNote = new Note(new PointF(overlay.getTranslationX(), (float) Math.random() * (124)), Note.Direction.RIGHT);
-            Note tmpNote2 = new Note(new PointF((176 + 20), (float) Math.random() * (124)), Note.Direction.LEFT);
-
+            Note tmpNote = new Note(new PointF(- 20, ((float) Math.random() * (overlay.getBottom() - 20 * overlay.getScaleFactor()) + overlay.getPostScaleHeightOffset()) / overlay.getScaleFactor()), Note.Direction.RIGHT);
+            Note tmpNote2 = new Note(new PointF(overlay.getImageWidth(), ((float) Math.random() * (overlay.getBottom() - 20 * overlay.getScaleFactor()) + overlay.getPostScaleHeightOffset()) / overlay.getScaleFactor()), Note.Direction.LEFT);
             this.displayNotes.add(tmpNote);
             this.displayNotes.add(tmpNote2);
         }
     }
 
     boolean isIndexInNote(PoseLandmark pose, Note note) {
-//        Log.e("WRISTX", Float.toString(176 - pose.getPosition().x));
-//        Log.e("WRISTY", Float.toString(176 - pose.getPosition().y));
-
         return note.getPosition().x <= pose.getPosition().x && pose.getPosition().x <= note.getPosition().x + note.getSize().getWidth() && note.getPosition().y <= pose.getPosition().y && pose.getPosition().y <= note.getPosition().y + note.getSize().getHeight();
     }
 }
