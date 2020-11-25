@@ -49,4 +49,5 @@ dependencies {
     implementation "androidx.camera:camera-view:1.0.0-alpha17"
     // If you want to additionally use the CameraX Extensions library
     implementation "androidx.camera:camera-extensions:1.0.0-alpha17"
+    implementation 'androidx.preference:preference:1.1.0-alpha01'
 }

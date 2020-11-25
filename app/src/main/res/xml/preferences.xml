@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="CameraX">
+        <SwitchPreference
+            android:key="key_enable_preview"
+            android:title="Show Preview"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Visualizer">
+        <SwitchPreference
+            android:key="key_enable_visualizer"
+            android:title="Show Visualizer"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+</PreferenceScreen>

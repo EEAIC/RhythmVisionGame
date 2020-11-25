@@ -1,5 +1,7 @@
 package com.lifository.RhythmVisionGame;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.Image;
@@ -12,6 +14,7 @@ import android.util.Size;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,6 +28,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.common.InputImage;
@@ -41,7 +46,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 @ExperimentalGetImage
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final String[] REQUIRED_PERMISSIONS = new String[] {"android.permission.CAMERA", "android.permission.RECORD_AUDIO"};
 
@@ -117,10 +122,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         noteProcessor = new NoteProcessor(graphicOverlay);
+        ImageView settingsButton = findViewById(R.id.settings_button);
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(intent);
+        });
+
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean enableVisualizer = true;
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
         if (allPermissionsGranted()) {
             startCamera();
-            mVisualizer.setEnabled(true);
+            mVisualizer.setEnabled(enableVisualizer);
             TimerTask noteMove = new TimerTask()
             {
                 public void run()
@@ -147,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
     }
+
 
     private void startCamera() {
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
@@ -204,7 +220,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        mPlayer.pause();
+        if(mPlayer.isPlaying()) {
+            mPlayer.pause();
+        }
     }
 
     @Override
@@ -216,6 +234,14 @@ public class MainActivity extends AppCompatActivity {
         if (musicThread != null && musicThread.isInterrupted()) {
             musicThread.start();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPlayer.release();
+        mPlayer = null;
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
     }
 
     private void setupVisualizerFxAndUI() {
@@ -232,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onWaveFormDataCapture(Visualizer visualizer, byte[] bytes, int i) {
                 mVisualizerView.updateVisualizer(bytes);
+
                 status = mVisualizer.getMeasurementPeakRms(measurement);
 //                Log.i(TAG, "peak="+measurement.mPeak+"  rms="+measurement.mRms);
 //                int deltaPeak = Math.abs(measurement.mPeak - EXPECTED_PEAK_MB);
@@ -249,4 +276,23 @@ public class MainActivity extends AppCompatActivity {
         }, Visualizer.getMaxCaptureRate(), true, false);
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        switch (s) {
+            case "key_enable_preview":
+                if (sharedPreferences.getBoolean(s, true)) {
+                    mPreviewView.setVisibility(View.VISIBLE);
+                } else {
+                    mPreviewView.setVisibility(View.INVISIBLE);
+                }
+                break;
+            case "key_enable_visualizer":
+                if (sharedPreferences.getBoolean(s, true)) {
+                    mVisualizerView.setVisibility(View.VISIBLE);
+                } else {
+                    mVisualizerView.setVisibility(View.INVISIBLE);
+                }
+                break;
+        }
+    }
 }
