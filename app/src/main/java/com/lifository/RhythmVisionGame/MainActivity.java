@@ -1,13 +1,16 @@
 package com.lifository.RhythmVisionGame;
 
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.media.Image;
 import android.media.MediaPlayer;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -40,17 +43,20 @@ import java.util.concurrent.Executors;
 @ExperimentalGetImage
 public class MainActivity extends AppCompatActivity {
     private final Executor executor = Executors.newSingleThreadExecutor();
-    private final String[] REQUIRED_PERMISSIONS = new String[] {"android.permission.CAMERA"};
+    private final String[] REQUIRED_PERMISSIONS = new String[] {"android.permission.CAMERA", "android.permission.RECORD_AUDIO"};
 
     private PreviewView mPreviewView;
+    private VisualizerView mVisualizerView;
     private GraphicOverlay graphicOverlay;
 
 
     PoseDetectorOptions options = new PoseDetectorOptions.Builder().setDetectorMode(PoseDetectorOptions.STREAM_MODE).build();
     PoseDetector poseDetector = PoseDetection.getClient(options);
     NoteProcessor noteProcessor;
-    MediaPlayer mPlayer;
+    private MediaPlayer mPlayer;
+    private Visualizer mVisualizer;
     SwitchCompat switch1;
+    Thread musicThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,16 +76,17 @@ public class MainActivity extends AppCompatActivity {
 //                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 //                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
-        mPlayer = MediaPlayer.create(this, R.raw.pirates);
+        mPlayer = MediaPlayer.create(this, R.raw.f_777_1up);
         mPlayer.setLooping(true);
 
         switch1 = findViewById(R.id.switchMusicStart);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         switch1.setOnClickListener(view -> {
             if (switch1.isChecked()) {
                 mPlayer.start();
                 TextView tvTime;
                 tvTime = findViewById(R.id.tvTime);
-                new Thread() {
+                musicThread = new Thread() {
                     final SimpleDateFormat timeFormat = new SimpleDateFormat("mm:ss", Locale.US);
                     @Override
                     public void run() {
@@ -88,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
                             SystemClock.sleep(200);
                         }
                     }
-                }.start();
+                };
+                musicThread.start();
             }
             else {
                 mPlayer.pause();
@@ -100,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
         mPreviewView = findViewById(R.id.previewView);
         mPreviewView.setVisibility(View.INVISIBLE);
 
+        mVisualizerView = findViewById(R.id.visualizer_view);
+        setupVisualizerFxAndUI();
+
         graphicOverlay = findViewById(R.id.graphic_overlay);
         if (graphicOverlay == null) {
             Log.d("CameraX", "graphicOverlay is null");
@@ -109,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (allPermissionsGranted()) {
             startCamera();
+            mVisualizer.setEnabled(true);
             TimerTask noteMove = new TimerTask()
             {
                 public void run()
@@ -201,5 +213,40 @@ public class MainActivity extends AppCompatActivity {
         if (switch1.isChecked()) {
             mPlayer.start();
         }
+        if (musicThread != null && musicThread.isInterrupted()) {
+            musicThread.start();
+        }
     }
+
+    private void setupVisualizerFxAndUI() {
+        mVisualizer = new Visualizer(mPlayer.getAudioSessionId());
+        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+
+
+        mVisualizer.setDataCaptureListener(new Visualizer.OnDataCaptureListener() {
+            final int EXPECTED_PEAK_MB = -4015;
+            final int EXPECTED_RMS_MB =  -4300;
+            final int MAX_MEASUREMENT_ERROR_MB = 2000;
+            int status = mVisualizer.setMeasurementMode(Visualizer.MEASUREMENT_MODE_PEAK_RMS);
+            Visualizer.MeasurementPeakRms measurement = new Visualizer.MeasurementPeakRms();
+            @Override
+            public void onWaveFormDataCapture(Visualizer visualizer, byte[] bytes, int i) {
+                mVisualizerView.updateVisualizer(bytes);
+                status = mVisualizer.getMeasurementPeakRms(measurement);
+//                Log.i(TAG, "peak="+measurement.mPeak+"  rms="+measurement.mRms);
+//                int deltaPeak = Math.abs(measurement.mPeak - EXPECTED_PEAK_MB);
+//                int deltaRms =  Math.abs(measurement.mRms - EXPECTED_RMS_MB);
+//                if (deltaPeak < MAX_MEASUREMENT_ERROR_MB)
+//                    Log.i(TAG, "peak deviation in mB=" + deltaPeak);
+//                if (deltaRms < MAX_MEASUREMENT_ERROR_MB)
+//                    Log.i(TAG,"RMS deviation in mB=" + deltaRms);
+            }
+
+            @Override
+            public void onFftDataCapture(Visualizer visualizer, byte[] bytes, int i) {
+                mVisualizerView.updateVisualizer(bytes);
+            }
+        }, Visualizer.getMaxCaptureRate(), true, false);
+    }
+
 }
