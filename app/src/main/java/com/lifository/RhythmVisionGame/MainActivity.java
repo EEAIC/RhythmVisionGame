@@ -9,6 +9,7 @@ import android.media.MediaPlayer;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
@@ -28,8 +29,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.common.InputImage;
@@ -81,59 +80,60 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 //                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 //                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
-        mPlayer = MediaPlayer.create(this, R.raw.f_777_1up);
-        mPlayer.setLooping(true);
 
-        switch1 = findViewById(R.id.switchMusicStart);
-        setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        switch1.setOnClickListener(view -> {
-            if (switch1.isChecked()) {
-                mPlayer.start();
-                TextView tvTime;
-                tvTime = findViewById(R.id.tvTime);
-                musicThread = new Thread() {
-                    final SimpleDateFormat timeFormat = new SimpleDateFormat("mm:ss", Locale.US);
-                    @Override
-                    public void run() {
-                        while(mPlayer.isPlaying()) {
-                            runOnUiThread(() -> tvTime.setText(timeFormat.format(mPlayer.getCurrentPosition())));
-                            SystemClock.sleep(200);
-                        }
-                    }
-                };
-                musicThread.start();
-            }
-            else {
-                mPlayer.pause();
-            }
-        });
-
-
-
-        mPreviewView = findViewById(R.id.previewView);
-        mPreviewView.setVisibility(View.INVISIBLE);
-
-        mVisualizerView = findViewById(R.id.visualizer_view);
-        setupVisualizerFxAndUI();
-
-        graphicOverlay = findViewById(R.id.graphic_overlay);
-        if (graphicOverlay == null) {
-            Log.d("CameraX", "graphicOverlay is null");
-        }
-
-        noteProcessor = new NoteProcessor(graphicOverlay);
-        ImageView settingsButton = findViewById(R.id.settings_button);
-        settingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(intent);
-        });
-
-
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean enableVisualizer = true;
-        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
         if (allPermissionsGranted()) {
+            mPlayer = MediaPlayer.create(this, R.raw.f_777_1up);
+            mPlayer.setLooping(true);
+
+            switch1 = findViewById(R.id.switchMusicStart);
+            setVolumeControlStream(AudioManager.STREAM_MUSIC);
+            switch1.setOnClickListener(view -> {
+                if (switch1.isChecked()) {
+                    mPlayer.start();
+                    TextView tvTime;
+                    tvTime = findViewById(R.id.tvTime);
+                    musicThread = new Thread() {
+                        final SimpleDateFormat timeFormat = new SimpleDateFormat("mm:ss", Locale.US);
+                        @Override
+                        public void run() {
+                            while(mPlayer.isPlaying()) {
+                                runOnUiThread(() -> tvTime.setText(timeFormat.format(mPlayer.getCurrentPosition())));
+                                SystemClock.sleep(200);
+                            }
+                        }
+                    };
+                    musicThread.start();
+                }
+                else {
+                    mPlayer.pause();
+                }
+            });
+
+
+
+            mPreviewView = findViewById(R.id.previewView);
+            mPreviewView.setVisibility(View.INVISIBLE);
+
+            mVisualizerView = findViewById(R.id.visualizer_view);
+            setupVisualizerFxAndUI();
+
+            graphicOverlay = findViewById(R.id.graphic_overlay);
+            if (graphicOverlay == null) {
+                Log.d("CameraX", "graphicOverlay is null");
+            }
+
+            noteProcessor = new NoteProcessor(graphicOverlay);
+            ImageView settingsButton = findViewById(R.id.settings_button);
+            settingsButton.setOnClickListener(v -> {
+                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
+            });
+
+
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            boolean enableVisualizer = true;
+            sharedPreferences.registerOnSharedPreferenceChangeListener(this);
             startCamera();
             mVisualizer.setEnabled(enableVisualizer);
             TimerTask noteMove = new TimerTask()
