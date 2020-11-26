@@ -44,8 +44,8 @@ public class VisualizerView extends View {
             mPoints = new float[mBytes.length * 4];
         }
         sum = 0;
-        for (int i = 0; i < mBytes.length; i++) {
-            sum += mBytes[i];
+        for (byte mByte : mBytes) {
+            sum += mByte;
         }
         Log.d("SUM", String.valueOf(sum));
 
