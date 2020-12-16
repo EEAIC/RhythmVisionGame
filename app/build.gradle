@@ -4,7 +4,7 @@ plugins {
 
 android {
     compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    buildToolsVersion '29.0.2'
 
     defaultConfig {
         applicationId "com.lifository.posedetection"
@@ -28,26 +28,43 @@ android {
     }
 }
 
+repositories {
+    // Depending on AndroidX Snapshot Builds to get the latest CameraX libs.
+    maven { url 'https://androidx.dev/snapshots/builds/6787662/artifacts/repository/' }
+}
+
 dependencies {
+
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.guava:guava:17.0'
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.3'
-    testImplementation 'junit:junit:4.+'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    // If you want to use the base sdk
+
+    // Pose detection with default models
     implementation 'com.google.mlkit:pose-detection:17.0.0'
+    // Pose detection with accurate models
+    implementation 'com.google.mlkit:pose-detection-accurate:17.0.0'
+
     // CameraX core library using the camera2 implementation
-    def camerax_version = "1.0.0-beta10"
-    // The following line is optional, as the core library is included indirectly by camera-camera2
-    implementation "androidx.camera:camera-core:${camerax_version}"
-    implementation "androidx.camera:camera-camera2:${camerax_version}"
-    // If you want to additionally use the CameraX Lifecycle library
-    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
-    // If you want to additionally use the CameraX View class
-    implementation "androidx.camera:camera-view:1.0.0-alpha17"
-    // If you want to additionally use the CameraX Extensions library
-    implementation "androidx.camera:camera-extensions:1.0.0-alpha17"
-    implementation 'androidx.preference:preference:1.1.0-alpha01'
+//    // The following line is optional, as the core library is included indirectly by camera-camera2
+//    implementation 'androidx.camera:camera-core:1.0.0-beta09'
+//    // If you want to additionally use the CameraX Extensions library
+//    implementation 'androidx.camera:camera-extensions:1.0.0-alpha16'
+    implementation 'androidx.preference:preference:1.1.1'
+
+    // CameraX
+    implementation "androidx.camera:camera-camera2:1.0.0-SNAPSHOT"
+    implementation "androidx.camera:camera-lifecycle:1.0.0-SNAPSHOT"
+    implementation "androidx.camera:camera-view:1.0.0-SNAPSHOT"
+}
+
+configurations {
+    // Resolves dependency conflict caused by some dependencies use
+    // com.google.guava:guava and com.google.guava:listenablefuture together.
+    all*.exclude group: 'com.google.guava', module: 'listenablefuture'
 }

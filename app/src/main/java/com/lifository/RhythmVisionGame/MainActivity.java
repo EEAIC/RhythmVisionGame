@@ -12,10 +12,10 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,7 +28,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -37,6 +36,7 @@ import com.google.mlkit.vision.pose.PoseDetection;
 import com.google.mlkit.vision.pose.PoseDetector;
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions;
 
+import java.io.SyncFailedException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Timer;
@@ -48,25 +48,48 @@ import java.util.concurrent.Executors;
 @ExperimentalGetImage
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private final Executor executor = Executors.newSingleThreadExecutor();
-    private final String[] REQUIRED_PERMISSIONS = new String[] {"android.permission.CAMERA", "android.permission.RECORD_AUDIO"};
 
+    // Permissions
+    private final String[] REQUIRED_PERMISSIONS = new String[] {"android.permission.CAMERA", "android.permission.RECORD_AUDIO"};
+    private final int REQUEST_CODE_PERMISSIONS = 1001;
+
+    // Views
     private PreviewView mPreviewView;
     private VisualizerView mVisualizerView;
+    private SwitchCompat mMusicSwitch;
+
     private GraphicOverlay graphicOverlay;
-
-
     PoseDetectorOptions options = new PoseDetectorOptions.Builder().setDetectorMode(PoseDetectorOptions.STREAM_MODE).build();
     PoseDetector poseDetector = PoseDetection.getClient(options);
     NoteProcessor noteProcessor;
     private MediaPlayer mPlayer;
     private Visualizer mVisualizer;
-    SwitchCompat switch1;
+
     Thread musicThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mPreviewView = findViewById(R.id.previewView);
+        mVisualizerView = findViewById(R.id.visualizer_view);
+        mMusicSwitch = findViewById(R.id.switchMusicStart);
+        ImageView mSettingsButton = findViewById(R.id.settings_button);
+        TextView tvTime = findViewById(R.id.tvTime);
+        graphicOverlay = findViewById(R.id.graphic_overlay);
+
+        // SettingsActivity
+        mSettingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(intent);
+        });
+
+        // Permission Check
+        if (allPermissionsGranted()) {
+
+
+
         // 화면이 꺼지는 것을 방지
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 //        View decorView = getWindow().getDecorView();
@@ -84,13 +107,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         mPlayer = MediaPlayer.create(this, R.raw.f_777_1up);
         mPlayer.setLooping(true);
 
-        switch1 = findViewById(R.id.switchMusicStart);
+
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        switch1.setOnClickListener(view -> {
-            if (switch1.isChecked()) {
+        mMusicSwitch.setOnClickListener(view -> {
+            if (mMusicSwitch.isChecked()) {
                 mPlayer.start();
-                TextView tvTime;
-                tvTime = findViewById(R.id.tvTime);
+
                 musicThread = new Thread() {
                     final SimpleDateFormat timeFormat = new SimpleDateFormat("mm:ss", Locale.US);
                     @Override
@@ -109,31 +131,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         });
 
 
-
-        mPreviewView = findViewById(R.id.previewView);
         mPreviewView.setVisibility(View.INVISIBLE);
 
-        mVisualizerView = findViewById(R.id.visualizer_view);
         setupVisualizerFxAndUI();
 
-        graphicOverlay = findViewById(R.id.graphic_overlay);
-        if (graphicOverlay == null) {
-            Log.d("CameraX", "graphicOverlay is null");
-        }
-
         noteProcessor = new NoteProcessor(graphicOverlay);
-        ImageView settingsButton = findViewById(R.id.settings_button);
-        settingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(intent);
-        });
-
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean enableVisualizer = true;
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
-        if (allPermissionsGranted()) {
             startCamera();
             mVisualizer.setEnabled(enableVisualizer);
             TimerTask noteMove = new TimerTask()
@@ -156,13 +163,28 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             Timer noteTimer = new Timer();
             noteTimer.schedule(noteMove, 0, 25);
             noteTimer.schedule(makeNote, 0, 1000);
-
         } else {
-            int REQUEST_CODE_PERMISSIONS = 1001;
+
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
+
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, R.string.permission_request_msg, Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+
+            finishAffinity();
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
+    }
 
     private void startCamera() {
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
@@ -205,13 +227,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         preview.setSurfaceProvider(mPreviewView.getSurfaceProvider());
 
         cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
-
     }
 
     private boolean allPermissionsGranted() {
         for (String permission : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                return  false;
+                return false;
             }
         }
         return true;
@@ -220,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onPause() {
         super.onPause();
-        if(mPlayer.isPlaying()) {
+        if(mPlayer != null && mPlayer.isPlaying()) {
             mPlayer.pause();
         }
     }
@@ -228,20 +249,22 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onResume() {
         super.onResume();
-        if (switch1.isChecked()) {
-            mPlayer.start();
-        }
-        if (musicThread != null && musicThread.isInterrupted()) {
-            musicThread.start();
-        }
+//        if (switch1.isChecked()) {
+//            mPlayer.start();
+//        }
+//        if (musicThread != null && musicThread.isInterrupted()) {
+//            musicThread.start();
+//        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mPlayer.release();
-        mPlayer = null;
-        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+        if (mPlayer != null) {
+            mPlayer.release();
+            mPlayer = null;
+            PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+        }
     }
 
     private void setupVisualizerFxAndUI() {

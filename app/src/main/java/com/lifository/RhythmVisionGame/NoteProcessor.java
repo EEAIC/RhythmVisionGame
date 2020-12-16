@@ -53,10 +53,12 @@ public class NoteProcessor {
 
     void makeRandomNote() {
         synchronized (displayNotes) {
-            Note tmpNote = new Note(new PointF(- 20, ((float) Math.random() * (overlay.getBottom() - 20 * overlay.getScaleFactor()) + overlay.getPostScaleHeightOffset()) / overlay.getScaleFactor()), Note.Direction.RIGHT);
-            Note tmpNote2 = new Note(new PointF(overlay.getImageWidth(), ((float) Math.random() * (overlay.getBottom() - 20 * overlay.getScaleFactor()) + overlay.getPostScaleHeightOffset()) / overlay.getScaleFactor()), Note.Direction.LEFT);
-            this.displayNotes.add(tmpNote);
-            this.displayNotes.add(tmpNote2);
+            if (overlay != null) {
+                Note tmpNote = new Note(new PointF(-20, ((float) Math.random() * (overlay.getBottom() - 20 * overlay.getScaleFactor()) + overlay.getPostScaleHeightOffset()) / overlay.getScaleFactor()), Note.Direction.RIGHT);
+                Note tmpNote2 = new Note(new PointF(overlay.getImageWidth(), ((float) Math.random() * (overlay.getBottom() - 20 * overlay.getScaleFactor()) + overlay.getPostScaleHeightOffset()) / overlay.getScaleFactor()), Note.Direction.LEFT);
+                this.displayNotes.add(tmpNote);
+                this.displayNotes.add(tmpNote2);
+            }
         }
     }
 
