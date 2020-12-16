@@ -1,7 +1,6 @@
 package com.lifository.RhythmVisionGame;
 
 import android.graphics.PointF;
-import android.util.Log;
 
 import com.google.mlkit.vision.pose.Pose;
 import com.google.mlkit.vision.pose.PoseLandmark;
