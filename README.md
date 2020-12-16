@@ -1,5 +1,6 @@
 # RhythmVisionGame
 Mobile Rhythm Game With ComputerVision
+
 minSdkVersion 29
 
 ## YouTube
